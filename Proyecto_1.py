@@ -349,6 +349,8 @@ try:
     def CSS():
         TxtAreaConsola.insert(INSERT, "CSS\n")
         Codigo = list(TxtAreaCodigo.get("1.0",'end-1c') + " ")
+        Letras = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "ñ", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
+        Digitos = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
         Cont = 0
         Estado = 0
         Inicio = 0
@@ -374,7 +376,66 @@ try:
                         FilaI = FilaI
                     else:
                         Errores.append(Error("/", "Error", Fila, Columna))
-                        TxtAreaConsola.insert(INSERT, "Error lexico \"/\" en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
+                        TxtAreaConsola.insert(INSERT, "Error lexico \"/\" en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
+                        Cont+=1
+                        Columna+=1
+                elif Codigo[Cont] == "." or Codigo[Cont] == "#":
+                    if Cont+1 != len(Codigo):
+                        EsLetra = False
+                        for i in range(len(Letras)):
+                            if str(Codigo[Cont+1]).lower() == Letras[i]:
+                                EsLetra = True
+                        if EsLetra:
+                            if Codigo[Cont] == ".":
+                                Tokens.append(Token(".", "Simbolo_Punto", Fila, Columna+1))
+                                TxtAreaConsola.insert(INSERT, "Simbolo Punto \".\" en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
+                            else:
+                                Tokens.append(Token("#", "Simbolo_Numeral", Fila, Columna+1))
+                                TxtAreaConsola.insert(INSERT, "Simbolo Numeral \"#\" en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
+                            Cont+=1
+                            Columna+=1
+                            Estado = 2
+                            Inicio = Cont
+                            ColumnaI = Columna
+                            FilaI = Fila
+                        else:
+                            ColumnaI = Columna
+                            FilaI = Fila
+                            Lexema = ""
+                            while Cont+1 != len(Codigo) and (Codigo[Cont]!= " " or Codigo[Cont]!= " " or Codigo[Cont]!= "{"  or Codigo[Cont]!= "\n"):
+                                Lexema += Codigo[Cont]
+                                Cont+=1
+                                Columna += 1
+                            Errores.append(Error(Lexema, "Error", Fila, Columna))
+                            TxtAreaConsola.insert(INSERT, "Error lexico \"" + Lexema + "\" en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
+                    else:
+                        Errores.append(Error(Codigo[Cont], "Error", Fila, Columna))
+                        TxtAreaConsola.insert(INSERT, "Error lexico \"" + Codigo[Cont] + "\" en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")                        
+
+                elif Codigo[Cont] == "*":
+                    Inicio = Cont
+                    Cont+=1
+                    ColumnaI = Columna
+                    Columna+=1
+                    while Cont+1 != len(Codigo) and (Codigo[Cont] == " " or Codigo[Cont] == "\t"):
+                        Cont+=1
+                        Columna+=1
+                    if Codigo[Cont] == "{":
+                        Cont+=2
+                        Tokens.append(Token("*", "Simbolo_Asterisco", Fila, Columna))
+                        TxtAreaConsola.insert(INSERT, "Simbolo Asterisco \"*\" en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
+                        Tokens.append(Token("{", "Simbolo_Abrir_Llaves", Fila, Columna+1))
+                        TxtAreaConsola.insert(INSERT, "Simbolo Abrir Llaves \"{\" en Fila: " + str(Fila) + " y columna: " + str(Columna+1) + "\n")
+                        Columna+=2
+                        Estado = 3
+                        Inicio = Cont
+                        ColumnaI = Columna
+                        FilaI = Fila
+                    else:
+                        Cont=Inicio
+                        Columna=ColumnaI
+                        Errores.append(Error("*", "Error", Fila, Columna))
+                        TxtAreaConsola.insert(INSERT, "Error lexico \"*\" en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
                         Cont+=1
                         Columna+=1
                 elif Codigo[Cont] == " " or Codigo[Cont] == "\t" or Codigo[Cont] == "":
@@ -385,8 +446,15 @@ try:
                     Columna = 0
                     Fila+= 1
                 else:
-                    Errores.append(Error(Codigo[Cont], "Error", Fila, Columna))
-                    TxtAreaConsola.insert(INSERT, "Error lexico \"" + Codigo[Cont] + "\" en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
+                    ColumnaI = Columna
+                    FilaI = Fila
+                    Lexema = ""
+                    while Cont+1 != len(Codigo) and Codigo[Cont] != " " and Codigo[Cont]!= "\n" and Codigo[Cont]!= "\t":
+                        Lexema += Codigo[Cont]
+                        Cont+=1
+                        Columna+=1
+                    Errores.append(Error(Lexema, "Error", Fila, Columna))
+                    TxtAreaConsola.insert(INSERT, "Error lexico \"" + Lexema + "\" en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
                     Cont+=1
                     Columna+=1
             elif Estado == 1:
@@ -430,6 +498,32 @@ try:
                     Cont+=1
                     Columna+=1
                     Estado=0
+            elif Estado == 2:
+                LetraONumero=False
+                for i in range(len(Letras)):
+                    if str(Codigo[Cont+1]).lower() == Letras[i]:
+                        LetraONumero = True
+                for i in range(len(Digitos)):
+                    if str(Codigo[Cont+1]).lower() == Digitos[i]:
+                        LetraONumero = True
+                if not LetraONumero:
+                    Lexema = ""
+                    if Cont+1 == len(Codigo):
+                        Cont+=1
+                    for i in range(Inicio, Cont):
+                        Lexema += Codigo[i]
+                    while Cont+1 != len(Codigo) and (Codigo[Cont] = " " or Codigo[Cont]!= "\t"):
+                        Cont+=1
+                        Columna+=1
+                    if Cont+1 != len(Codigo):
+
+                    else:
+                        
+                else:
+                    Cont+=1
+                    Columna+=1
+            elif Estado == 3:
+                Cont+=1
                 
     def Javascript():
         TxtAreaConsola.insert(INSERT, "JS\n")
