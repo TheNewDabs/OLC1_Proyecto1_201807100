@@ -1,4 +1,6 @@
 import os
+import platform
+import pydot
 from tkinter import *
 from tkinter import Menu
 from tkinter import scrolledtext
@@ -40,14 +42,83 @@ try:
     Label(window, text="Consola:").place(x=5, y=288)
     TxtAreaConsola = scrolledtext.ScrolledText(window,width=77,height=10, state='disabled')
     TxtAreaConsola.place(x=5, y=310)
-    menu = Menu(window)
-    new_item = Menu(menu, tearoff=0)
-    new_item.add_command(label='Nuevo Archivo')
-    new_item.add_command(label='Abrir Archivo')
-    new_item.add_separator()
-    new_item.add_command(label='Guardar')
-    new_item.add_command(label='Guardar como')
-    menu.add_cascade(label='Archivo', menu=new_item)
+
+    def OptenerRuta():
+        if LSelect.get() == 1:
+            return "ArchivoHTML.html"
+        elif LSelect.get() == 2:
+            return "ArchivoCSS.css"
+        elif LSelect.get() == 3:
+            return "ArchivoJS.js"
+        elif LSelect.get() == 4:
+            return "Archivormt.rmt"
+        else:
+            return "Archivo.txt"
+
+    def GenerarDot(Entrado = list()):
+        "0-Comentario Unilinea, 1-Multilinea, 2-Simbolos, 3-ID, 4-Reservadas, 5-Numero, 6-Decimal"
+        dot = pydot.Dot()
+        Inicio = pydot.Node("Inicio")
+        dot.add_node(Inicio)
+        if Entrado[0]:
+            Unilinea = pydot.Node("Com.Unilinea")
+            dot.add_node(Unilinea)
+            dot.add_edge(pydot.Edge(Inicio,Unilinea))
+        if Entrado[1]:
+            Multilinea = pydot.Node("Com.Multilinea")
+            dot.add_node(Multilinea)
+            dot.add_edge(pydot.Edge(Inicio,Multilinea))
+        if Entrado[2]:
+            Simbolo = pydot.Node("Simbolo")
+            dot.add_node(Simbolo)
+            dot.add_edge(pydot.Edge(Inicio,Simbolo))
+        if Entrado[3]:
+            ID = pydot.Node("ID")
+            dot.add_node(ID)
+            dot.add_edge(pydot.Edge(Inicio,ID))
+        if Entrado[4]:
+            Reservadas = pydot.Node("Reservadas")
+            dot.add_node(Reservadas)
+            dot.add_edge(pydot.Edge(Inicio,Reservadas))
+        if Entrado[5]:
+            Numero = pydot.Node("Numero")
+            dot.add_node(Numero)
+            dot.add_edge(pydot.Edge(Inicio,Numero))
+        if Entrado[6]:
+            Decimal = pydot.Node("Decimal")
+            dot.add_node(Decimal)
+            dot.add_edge(pydot.Edge(Inicio,Decimal))
+        dot.write_png("GraficoJS.png", prog='neato')
+
+    def ImprimirErrores(Errores=list(), Lenguaje="*", Ruta="Errores"):
+        file = open(Ruta + OptenerRuta(), "w")
+        file.write("<!DOCTYPE html>" + os.linesep)
+        file.write("<html lang=\"es\">" + os.linesep)
+        file.write("    <head>" + os.linesep)
+        file.write("        <meta charset=\"utf-8\">" + os.linesep)
+        file.write("        <title>Errores" + Lenguaje + "</title>" + os.linesep)
+        file.write("        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" + os.linesep)
+        file.write("        <link rel=\"stylesheet\" href=\"estilo.css\">" + os.linesep)
+        file.write("    </head>" + os.linesep)
+        file.write("    <body>" + os.linesep)
+        file.write("        <h1>Errores" + Lenguaje + "</h1>" + os.linesep)
+        file.write("        <table class=\"egt\" border=\"2\">" + os.linesep)
+        file.write("            <tr>" + os.linesep)
+        file.write("                <th>Lexema</th>" + os.linesep)
+        file.write("                <th>Tipo</th>" + os.linesep)
+        file.write("                <th>Fila</th>" + os.linesep)
+        file.write("                <th>Columna</th>" + os.linesep)
+        file.write("            </tr>" + os.linesep)
+        for i in range(len(Errores)):
+            file.write("            <tr>" + os.linesep)
+            file.write("                <th>" + Errores[i].Lexema + "</th>" + os.linesep)
+            file.write("                <th>" + Errores[i].Tipo + "</th>" + os.linesep)
+            file.write("                <th>" + str(Errores[i].Fila) + "</th>" + os.linesep)
+            file.write("                <th>" + str(Errores[i].Columna) + "</th>" + os.linesep)
+            file.write("            </tr>" + os.linesep)
+        file.write("    </body>" + os.linesep)
+        file.write("</html>")
+        file.close()
 
     def IsLetra(Caracter="*"):
         Letras = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "ñ", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
@@ -98,7 +169,6 @@ try:
                     Estado = 9
                 elif Codigo[Cont] == ">":
                     Tokens.append(Token(">", "Simbolo_Mayor_Que", Fila, Columna))
-                    TxtAreaConsola.insert(INSERT, "Simbolo | > | en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
                     Cont+=1
                     Columna+=1
                     if Cont < len(Codigo) and Codigo[Cont] != ">":
@@ -110,12 +180,10 @@ try:
                         Estado = 0
                 elif Codigo[Cont] == "/":
                     Tokens.append(Token("/", "Simbolo_Barra", Fila, Columna))
-                    TxtAreaConsola.insert(INSERT, "Simbolo | / | en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
                     Cont+=1
                     Columna+=1
                 elif Codigo[Cont] == "=":
                     Tokens.append(Token("=", "Simbolo_Igual", Fila, Columna))
-                    TxtAreaConsola.insert(INSERT, "Simbolo | = | en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
                     Cont+=1
                     Columna+=1
                 elif Codigo[Cont] == "\"":
@@ -194,7 +262,6 @@ try:
                 Columna = ColumnaI
                 Fila = FilaI
                 Tokens.append(Token("<", "Simbolo_Menor_Que", Fila, Columna))
-                TxtAreaConsola.insert(INSERT, "Simbolo | < | en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
                 Cont+=1
                 Columna+=1
                 Estado = 0
@@ -235,7 +302,6 @@ try:
                     for i in range(Inicio, Cont):
                         Lexema += Codigo[i]
                     Tokens.append(Token(Lexema, "Comentario", FilaI, ColumnaI))
-                    TxtAreaConsola.insert(INSERT, "Comentario | " + Lexema + " | en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
                 elif Cont+1 == len(Codigo):
                     Lexema = ""
                     for i in range(Inicio, Cont):
@@ -255,14 +321,12 @@ try:
                         if Lexema.lower() == Etiquetas[i].lower():
                             Etiqueta = True
                             Tokens.append(Token(Lexema, "Etiqueta_"+Etiquetas[i], FilaI, ColumnaI))
-                            TxtAreaConsola.insert(INSERT, "Etiqueta | " + Etiquetas[i] + " | en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
                     if not Etiqueta:
                         Atributo = False
                         for i in range(len(Atributos)):
                             if Lexema.lower() == Atributos[i].lower():
                                 Atributo = True
                                 Tokens.append(Token(Lexema, "Atributo_"+Atributos[i], FilaI, ColumnaI))
-                                TxtAreaConsola.insert(INSERT, "Atributo | " + Atributos[i] + " | en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")                        
                         if not Atributo:
                             Errores.append(Error(Lexema, "Palabra_Inexistente", FilaI, ColumnaI))
                             TxtAreaConsola.insert(INSERT, "Error lexico: Etiqueta o atributo no soportado | " + Lexema + " | en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
@@ -276,7 +340,6 @@ try:
                     for i in range(Inicio, Cont):
                         Lexema += Codigo[i]
                     Tokens.append(Token(Lexema, "Texto", FilaI, ColumnaI))
-                    TxtAreaConsola.insert(INSERT, "Texto | " + Lexema + " | en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
                     Estado = 0
                 else:
                     Cont+=1
@@ -285,7 +348,6 @@ try:
                         for i in range(Inicio, Cont):
                             Lexema += Codigo[i]
                         Tokens.append(Token(Lexema, "Texto", FilaI, ColumnaI))
-                        TxtAreaConsola.insert(INSERT, "Texto | " + Lexema + " | en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
                         Estado = 0
                     elif Codigo[Cont] == "\n":
                         Columna = 0
@@ -300,7 +362,6 @@ try:
                     for i in range(Inicio, Cont):
                         Lexema += Codigo[i]
                     Tokens.append(Token(Lexema, "Cadena", FilaI, ColumnaI))
-                    TxtAreaConsola.insert(INSERT, "Cadena | " + Lexema + " | en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
                     Estado = 0
                 else:
                     Cont+=1
@@ -316,6 +377,7 @@ try:
                         Fila+=1
                     else:
                         Columna+=1
+        ImprimirErrores(Errores, "HTML")
 
     def CSS():
         TxtAreaConsola.insert(INSERT, "CSS\n")
@@ -489,7 +551,8 @@ try:
                     Errores.append(Error(Lexema, "Cadena_Sin_Fin", FilaI, ColumnaI))
                     TxtAreaConsola.insert(INSERT, "Error lexico: Cadena sin finalizar | " + Lexema + " | en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
                     Estado = 0
-    
+        ImprimirErrores(Errores, "CSS")
+
     def Javascript():
         TxtAreaConsola.insert(INSERT, "JS\n")
         Codigo = list(TxtAreaCodigo.get("1.0",'end-1c') + " ")
@@ -506,7 +569,7 @@ try:
         FilaI = 0
         Tokens = list()
         Errores = list()
-        "Comentario Unilinea, Multilinea, Simbolos, ID, Reservadas, Numero, Decimal"
+        "0-Comentario Unilinea, 1-Multilinea, 2-Simbolos, 3-ID, 4-Reservadas, 5-Numero, 6-Decimal"
         Entrado = [False, False, False, False, False, False, False]
         while Cont < len(Codigo):
             if Estado == 0:
@@ -531,7 +594,7 @@ try:
                     FilaI = Fila
                     Cont+=1
                     Columna+=1
-                elif Codigo[Cont] == "\t" and Codigo[Cont] ==  "":
+                elif Codigo[Cont] == "\t" or Codigo[Cont] ==  " ":
                     NCodigo += Codigo[Cont]
                     Cont+=1
                     Columna+=1
@@ -565,6 +628,7 @@ try:
                     Cont+=1
                     Columna+=1
                 else:
+                    Entrado[2] = True
                     Tokens.append(Token(Codigo[Cont-1], "Simbolo_Barra", Fila, Columna-1))
                     NCodigo += "/"
                     Estado = 0
@@ -573,6 +637,7 @@ try:
                     Lexema = ""
                     for i in range(Inicio, Cont):
                         Lexema += Codigo[i]
+                    Entrado[0] = True
                     Tokens.append(Token(Lexema, "Comentario", FilaI, ColumnaI))
                     NCodigo += Lexema
                     Estado = 0
@@ -605,6 +670,7 @@ try:
                     Lexema = ""
                     for i in range(Inicio, Cont):
                         Lexema += Codigo[i]
+                    Entrado[1] = True
                     Tokens.append(Token(Lexema, "Comentario", FilaI, ColumnaI))
                     NCodigo += Lexema
                     Estado = 0
@@ -618,10 +684,12 @@ try:
                     Reservada = False
                     for i in range(len(Reservadas)):
                         if Lexema == Reservadas[i]:
+                            Entrado[4] = True
                             Reservada = True
                             Tokens.append(Token(Lexema, "Reservada_" + Reservadas[i], FilaI, ColumnaI))
                             NCodigo += Lexema
                     if not Reservada:
+                        Entrado[3] = True
                         Tokens.append(Token(Lexema, "ID", FilaI, ColumnaI))
                         NCodigo += Lexema
                     Estado = 0
@@ -633,6 +701,7 @@ try:
                     Lexema = ""
                     for i in range(Inicio, Cont):
                         Lexema += Codigo[i]
+                    Entrado[5] = True
                     Tokens.append(Token(Lexema, "Numero", FilaI, ColumnaI))
                     NCodigo += Lexema
                     Estado = 0
@@ -649,6 +718,7 @@ try:
                     for i in range(Inicio, Cont):
                         Lexema += Codigo[i]
                     Tokens.append(Token(Lexema, "Numero_Con_Decimal", FilaI, ColumnaI))
+                    Entrado[6] = True
                     NCodigo += Lexema
                     Estado = 0
                 else:
@@ -656,6 +726,8 @@ try:
                     Columna+=1
         TxtAreaCodigo.delete(1.0,END)
         TxtAreaCodigo.insert(INSERT, NCodigo)
+        ImprimirErrores(Errores, "JS")
+        GenerarDot(Entrado)
 
     def Sintactico():
 
@@ -842,7 +914,8 @@ try:
             Columna=0
             Fila += 1 
             Cont+=1    
-    
+        ImprimirErrores(Errores, "Sintactico")
+
     def Analizar():
         Tokens = list()
         TxtAreaConsola.configure(state="normal")
@@ -855,9 +928,36 @@ try:
         func = switcher.get(LSelect.get(), lambda: messagebox.showwarning('Sin lenguaje', 'No se ah seleccionado ningun lenguaje a analizar'))
         func()
         TxtAreaConsola.configure(state="disabled")
+
+    def Nuevo():
+        TxtAreaCodigo.delete(1.0,END)
+        TxtAreaCodigo.insert(INSERT, "")
     
+    def Abrir(Ruta="Archivo"):
+        file = open(OptenerRuta(), "r")
+        TxtAreaCodigo.delete(1.0,END)
+        TxtAreaCodigo.insert(INSERT, file.read())
+        file.close()
+
+    def Guardar(Ruta="Archivo"):
+        file = open(OptenerRuta(), "w")
+        Txt = Codigo = list(TxtAreaCodigo.get("1.0",'end-1c'))
+        for i in range(len(Txt)):
+            if Txt[i] != "\n":
+                file.write(Txt[i])
+            else:
+                file.write(os.linesep)
+        file.close()
+    
+    menu = Menu(window)
+    new_item = Menu(menu, tearoff=0)
+    new_item.add_command(label='Nuevo Archivo', command=Nuevo)
+    new_item.add_command(label='Abrir Archivo', command=Abrir)
+    new_item.add_separator()
+    new_item.add_command(label='Guardar', command=Guardar)
+    new_item.add_command(label='Guardar como', command=Guardar)
+    menu.add_cascade(label='Archivo', menu=new_item)
     menu.add_command(label='Analizar', command=Analizar)
-    menu.add_command(label='Salir')
     window.config(menu=menu)
     window.mainloop()    
 except:
