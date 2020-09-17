@@ -1,3 +1,4 @@
+import os
 from tkinter import *
 from tkinter import Menu
 from tkinter import scrolledtext
@@ -47,306 +48,6 @@ try:
     new_item.add_command(label='Guardar')
     new_item.add_command(label='Guardar como')
     menu.add_cascade(label='Archivo', menu=new_item)
-    
-    def HTML():
-        TxtAreaConsola.insert(INSERT, "HTML\n")
-        Etiquetas = ["html", "head", "title", "body", "h1", "h2", "h3", "h4", "h5", "h6", "p", "img", "a", "ol", "ul", "li", "table", "th", "tr", "td", "caption", "colgroup", "col", "thead", "tbody", "tfoot", "foot", "br"]
-        Texto = ["title", "h1", "h2", "h3", "h4", "h5", "h6", "p", "a", "li", "th", "td", "caption", "br"]
-        Atributos = ["src", "href", "style", "border"]
-        Codigo = list(TxtAreaCodigo.get("1.0",'end-1c') + " ")
-        Cont = 0
-        Estado = 0
-        Inicio = 0
-        Columna = 0
-        Fila = 0
-        ColumnaI = 0
-        FilaI = 0
-        Cerradura = False
-        Tokens = list()
-        Errores = list()
-        while Cont < len(Codigo):
-            if Estado == 0:
-                if Codigo[Cont] == "<":
-                    Tokens.append(Token("<", "Simbolo_Menor_Que", Fila, Columna))
-                    TxtAreaConsola.insert(INSERT, "Simbolo Menor Que \"<\" en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
-                    Columna+=1
-                    Cont+=1
-                    if Codigo[Cont] == "/":
-                        Tokens.append(Token("/", "Simbolo_Barra", Fila, Columna))
-                        TxtAreaConsola.insert(INSERT, "Simbolo Barra \"/\" en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
-                        Cont+= 1
-                        Columna+=1
-                        Cerradura = True
-                    else:
-                        Cerradura = False
-                    Estado = 1
-                    ColumnaI = Columna
-                    FilaI = FilaI
-                    Inicio = Cont
-                    if Codigo[Cont] == "!" and Cont+1 != len(Codigo):
-                        Cont+=1
-                        Columna+=1
-                        if Codigo[Cont] == "-" and Cont+1 != len(Codigo):
-                            Cont+=1
-                            Columna+=1
-                            if Codigo[Cont] == "-" and Cont+1 != len(Codigo):
-                                Tokens.append(Token("!", "Simbolo_Exclamacion", FilaI, ColumnaI))
-                                TxtAreaConsola.insert(INSERT, "Simbolo Exclamacion \"!\" en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
-                                Tokens.append(Token("-", "Simbolo_Guion", FilaI, ColumnaI+1))
-                                TxtAreaConsola.insert(INSERT, "Simbolo Guion \"-\" en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI+1) + "\n")
-                                Tokens.append(Token("-", "Simbolo_Exclamacion", FilaI, Columna))
-                                TxtAreaConsola.insert(INSERT, "Simbolo Guion \"-\" en Fila: " + str(FilaI) + " y columna: " + str(Columna) + "\n")
-                                Cont+=1
-                                Columna+=1
-                                ColumnaI = Columna
-                                FilaI = FilaI
-                                Inicio = Cont
-                                Estado = 5
-                            else:
-                                Cont = Inicio
-                                Columna = ColumnaI
-                        else:
-                            Cont = Inicio
-                            Columna = ColumnaI
-                elif Codigo[Cont] == ">":
-                    Tokens.append(Token(">", "Simbolo_Mayor_Que", Fila, Columna))
-                    TxtAreaConsola.insert(INSERT, "Simbolo Mayor Que \">\" en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
-                    Columna+=1
-                    Cont+=1
-                elif Codigo[Cont] == " " or Codigo[Cont] == "\t" or Codigo[Cont] == "":
-                    Cont+= 1
-                    Columna+= 1
-                elif Codigo[Cont] == "\n":
-                    Cont+= 1
-                    Columna = 0
-                    Fila+= 1
-                else:
-                    ColumnaI = Columna
-                    FilaI = Fila
-                    Inicio = Cont
-                    Estado = 100
-            elif Estado == 1:
-                if Codigo[Cont] == " " or Codigo[Cont] == "\t" or  Codigo[Cont] == "\n" or  Codigo[Cont] == ">" or  Codigo[Cont] == "/":
-                    Lexema = ""
-                    for i in range(Inicio, Cont):
-                        Lexema += Codigo[i]
-                    print(Lexema)
-                    Etiqueta = False
-                    for i in range(len(Etiquetas)):
-                        if Lexema.lower() == Etiquetas[i].lower():
-                            Tokens.append(Token(Lexema, "Etiqueta_" + Etiquetas[i], FilaI, ColumnaI))
-                            TxtAreaConsola.insert(INSERT, "Etiqueta " + Etiquetas[i] + " en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
-                            Etiqueta = True
-                    if Etiqueta:
-                        if Codigo[Cont] == "\n":
-                            Estado == 0
-                        elif Codigo[Cont] == " " or Codigo[Cont] == "\t" or Codigo[Cont] == ">" or Codigo[Cont] == "/":
-                            if Codigo[Cont] == "/":
-                                Tokens.append(Token("/", "Simbolo_Barra", Fila, Columna))
-                                TxtAreaConsola.insert(INSERT, "Simbolo Barra \"/\" en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
-                                Columna+=1
-                                Cont+=1
-                            while (Codigo[Cont] == " " or Codigo[Cont] == "\t") and Cont+1 != len(Codigo):
-                                Columna+=1
-                                Cont+=1
-                            if Cont != len(Codigo):
-                                Text = False
-                                for i in range(len(Texto)):
-                                    if Lexema.lower() == Texto[i].lower():
-                                        Text = True
-                                if Codigo[Cont] == ">":
-                                    Tokens.append(Token(">", "Simbolo_Mayor_Que", Fila, Columna))
-                                    TxtAreaConsola.insert(INSERT, "Simbolo Mayor Que \">\" en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
-                                    Columna+=1
-                                    Cont+=1
-                                    if Text and not Cerradura:
-                                        Estado = 3
-                                        Inicio = Cont
-                                        FilaI = Fila
-                                        ColumnaI = Columna
-                                    else:
-                                        Estado = 0
-                                else:
-                                    Inicio = Cont
-                                    FilaI = Fila
-                                    ColumnaI = Columna
-                                    Estado = 2
-                    else:
-                        Errores.append(Error(Lexema, "Error", FilaI, ColumnaI))
-                        TxtAreaConsola.insert(INSERT, "Error lexico \"" + Lexema + "\" en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
-                        Estado = 0
-                else:
-                    Cont+=1
-                    Columna+=1
-            elif Estado == 2:
-                if Codigo[Cont] == " " or Codigo[Cont] == "\t" or  Codigo[Cont] == "\n" or  Codigo[Cont] == ">" or  Codigo[Cont] == "/" or  Codigo[Cont] == "=":
-                    Lexema = ""
-                    for i in range(Inicio, Cont):
-                        Lexema += Codigo[i]
-                    Atributo = False
-                    for i in range(len(Atributos)):
-                        if Lexema.lower() == Atributos[i].lower():
-                            Tokens.append(Token(Lexema, "Atributo_" + Atributos[i], FilaI, ColumnaI))
-                            TxtAreaConsola.insert(INSERT, "Atributos " + Atributos[i] + " en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
-                            Atributo = True
-                    if Atributo:
-                        if Codigo[Cont] == "\n":
-                            Estado == 0
-                        elif Codigo[Cont] == " " or Codigo[Cont] == "\t" or Codigo[Cont] == ">" or Codigo[Cont] == "=":
-                            while (Codigo[Cont] == " " or Codigo[Cont] == "\t") and Cont+1 != len(Codigo):
-                                Columna+=1
-                                Cont+=1
-                            if Cont != len(Codigo):
-                                if Codigo[Cont] == ">":
-                                    Tokens.append(Token(">", "Simbolo_Mayor_Que", Fila, Columna))
-                                    TxtAreaConsola.insert(INSERT, "Simbolo Mayor Que \">\" en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
-                                    Columna+=1
-                                    Cont+=1
-                                    if Text:
-                                        ColumnaI = Columna
-                                        FilaI = Fila
-                                        Estado = 3
-                                    else:
-                                        Estado = 0
-                                elif Codigo[Cont] == "=":
-                                    Tokens.append(Token("=", "Simbolo_Igual_Que", Fila, Columna))
-                                    TxtAreaConsola.insert(INSERT, "Simbolo Igual Que \"=\" en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
-                                    Columna+=1
-                                    Cont+=1
-                                    if Codigo[Cont] == "\"":
-                                        Tokens.append(Token("\"", "Simbolo_Comillas", Fila, Columna))
-                                        TxtAreaConsola.insert(INSERT, "Simbolo Comillas [\"] en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
-                                        Columna+=1
-                                        Cont+=1
-                                        Estado = 4
-                                        Inicio = Cont
-                                        FilaI = Fila
-                                        ColumnaI = Columna
-                                    else:
-                                        Estado = 0
-                                else:
-                                    Inicio = Cont
-                                    FilaI = Fila
-                                    ColumnaI = Columna
-                    else:
-                        Errores.append(Error(Lexema, "Error", FilaI, ColumnaI))
-                        TxtAreaConsola.insert(INSERT, "Error lexico \"" + Lexema + "\" en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
-                        Estado = 0
-                else:
-                    Cont+=1
-                    Columna+=1
-            elif Estado == 3:
-                while Cont+1 != len(Codigo) and Codigo[Cont] != "<":
-                    Cont+=1
-                    Columna+=1
-                    if Codigo[Cont] == "\n":
-                        Fila+=1
-                        Columna = 0
-                Lexema = ""
-                for i in range(Inicio, Cont):
-                    Lexema += Codigo[i]
-                Tokens.append(Token(Lexema, "Cadena", Fila, Columna))
-                TxtAreaConsola.insert(INSERT, "Cadena \"" + Lexema + "\" en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
-                Estado = 0
-            elif Estado == 4:
-                while Cont+1 != len(Codigo) and Codigo[Cont] != "\"":
-                    Cont+=1
-                    Columna+=1
-                    if Codigo[Cont] == "\n":
-                        Fila+=1
-                        Columna = 0
-                Lexema = ""
-                for i in range(Inicio, Cont):
-                    Lexema += Codigo[i]
-                if Codigo[Cont] == "\"":
-                    Tokens.append(Token(Lexema, "Texto", Fila, Columna))
-                    TxtAreaConsola.insert(INSERT, "Texto \"" + Lexema + "\" en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
-                    Tokens.append(Token("\"", "Simbolo_Comillas", Fila, Columna))
-                    TxtAreaConsola.insert(INSERT, "Simbolo Comillas [\"] en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
-                    Cont+=1
-                    Columna+=1
-                    while (Codigo[Cont] == " " or Codigo[Cont] == "\t") and Cont+1 != len(Codigo):
-                        Columna+=1
-                        Cont+=1
-                    if Codigo[Cont] == ">":
-                        Tokens.append(Token(">", "Simbolo_Mayor_Que", Fila, Columna))
-                        TxtAreaConsola.insert(INSERT, "Simbolo Mayor Que \">\" en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
-                        Columna+=1
-                        Cont+=1
-                        if Text:
-                            Inicio = Cont
-                            ColumnaI = Columna
-                            FilaI = Fila
-                            Estado = 3
-                        else:
-                            Estado = 0
-                    else:
-                        Estado = 2
-                        Inicio = Cont
-                        ColumnaI = Columna
-                        FilaI = Fila
-                else:
-                    Errores.append(Error(Lexema, "Error", FilaI, ColumnaI))
-                    TxtAreaConsola.insert(INSERT, "Error lexico \"" + Lexema + "\" en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
-                    Estado = 0
-            elif Estado == 5:
-                while Cont+1 != len(Codigo) and Codigo[Cont] != "-":
-                    Cont+=1
-                    Columna+=1
-                    if Codigo[Cont] == "\n":
-                        Fila+=1
-                        Columna = 0
-                if Cont+1 != len(Codigo) and Codigo[Cont] == "-":
-                    Cont+=1
-                    Columna+=1
-                    if Cont+1 != len(Codigo) and Codigo[Cont] == "-":
-                        Cont+=1
-                        Columna+=1
-                        if Cont+1 != len(Codigo) and Codigo[Cont] == "!":
-                            Cont+=1
-                            Columna+=1
-                            if Cont+1 != len(Codigo) and Codigo[Cont] == ">":
-                                Lexema = ""
-                                for i in range(Inicio, Cont-3):
-                                    Lexema += Codigo[i]
-                                Tokens.append(Token(Lexema, "Comentario", Fila, Columna))
-                                TxtAreaConsola.insert(INSERT, "Comentario \"" + Lexema + "\" en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
-                                Tokens.append(Token("-", "Simbolo_Exclamacion", Fila, Columna-3))
-                                TxtAreaConsola.insert(INSERT, "Simbolo Guion \"-\" en Fila: " + str(Fila) + " y columna: " + str(Columna-3) + "\n")
-                                Tokens.append(Token("-", "Simbolo_Exclamacion", Fila, Columna-2))
-                                TxtAreaConsola.insert(INSERT, "Simbolo Guion \"-\" en Fila: " + str(Fila) + " y columna: " + str(Columna-2) + "\n")
-                                Tokens.append(Token("!", "Simbolo_Exclamacion", Fila, Columna-1))
-                                TxtAreaConsola.insert(INSERT, "Simbolo Exclamacion \"!\" en Fila: " + str(Fila) + " y columna: " + str(Columna-1) + "\n")
-                                Tokens.append(Token(">", "Simbolo_Mayor_Que", Fila, Columna))
-                                TxtAreaConsola.insert(INSERT, "Simbolo Mayor Que \">\" en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
-                                Cont+=1
-                                Columna+=1
-                                Estado = 0
-                elif Cont+1 == len(Codigo):
-                    Lexema = ""
-                    for i in range(Inicio, Cont+1):
-                        Lexema += Codigo[i]
-                    Errores.append(Error(Lexema, "Error", Fila, Columna))
-                    TxtAreaConsola.insert(INSERT, "Error lexico \"" + Lexema + "\" en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
-                    Estado = 0
-            elif Estado == 100:
-                if Codigo[Cont] == "<" or Codigo[Cont]== "\n" or Cont+1 == len(Codigo):
-                    Lexema = ""
-                    if Cont+1 == len(Codigo):
-                        Cont+=1
-                    for i in range(Inicio, Cont):
-                        Lexema += Codigo[i]
-                    Errores.append(Error(Lexema, "Error", FilaI, ColumnaI))
-                    TxtAreaConsola.insert(INSERT, "Error lexico \"" + Lexema + "\" en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
-                    Estado = 0
-                else:
-                    Columna+= 1
-                    Cont+= 1
-                    if Codigo[Cont] == "\n":
-                        Fila+=1
-                        Columna = 0
-            else:
-                    Estado=0
 
     def IsLetra(Caracter="*"):
         Letras = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "ñ", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
@@ -362,6 +63,260 @@ try:
                 return True
         return False
     
+    def HTML():
+        TxtAreaConsola.insert(INSERT, "HTML\n")
+        Etiquetas = ["html", "head", "title", "body", "h1", "h2", "h3", "h4", "h5", "h6", "p", "img", "a", "ol", "ul", "li", "table", "th", "tr", "td", "caption", "colgroup", "col", "thead", "tbody", "tfoot", "foot", "br"]
+        Atributos = ["src", "href", "style", "border"]
+        Codigo = list(TxtAreaCodigo.get("1.0",'end-1c') + " ")
+        Cont = 0
+        Estado = 0
+        Inicio = 0
+        Columna = 0
+        Fila = 0
+        ColumnaI = 0
+        FilaI = 0
+        Cerradura = False
+        Tokens = list()
+        Errores = list()
+        while Cont < len(Codigo):
+            if Estado == 0:
+                if Codigo[Cont] == "<":
+                    Inicio = Cont
+                    ColumnaI = Columna
+                    FilaI = Fila
+                    if Cont+1 != len(Codigo):
+                        Estado = 1
+                        Cont+=1
+                        Columna+=1
+                    else:
+                        Estado == 5
+                elif IsLetra(Codigo[Cont]):
+                    Inicio = Cont
+                    ColumnaI = Columna
+                    Cont+=1
+                    Columna+=1
+                    Estado = 9
+                elif Codigo[Cont] == ">":
+                    Tokens.append(Token(">", "Simbolo_Mayor_Que", Fila, Columna))
+                    TxtAreaConsola.insert(INSERT, "Simbolo | > | en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
+                    Cont+=1
+                    Columna+=1
+                    if Cont < len(Codigo) and Codigo[Cont] != ">":
+                        Estado = 10
+                        Inicio = Cont
+                        ColumnaI = Columna
+                        FilaI = Fila
+                    else:
+                        Estado = 0
+                elif Codigo[Cont] == "/":
+                    Tokens.append(Token("/", "Simbolo_Barra", Fila, Columna))
+                    TxtAreaConsola.insert(INSERT, "Simbolo | / | en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
+                    Cont+=1
+                    Columna+=1
+                elif Codigo[Cont] == "=":
+                    Tokens.append(Token("=", "Simbolo_Igual", Fila, Columna))
+                    TxtAreaConsola.insert(INSERT, "Simbolo | = | en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
+                    Cont+=1
+                    Columna+=1
+                elif Codigo[Cont] == "\"":
+                    Estado = 11
+                    Inicio = Cont
+                    ColumnaI = Columna
+                    FilaI = Fila
+                    Cont+=1
+                    Columna+=1
+                elif Codigo[Cont] == " " or Codigo[Cont] == "\t" :
+                    Cont+=1
+                    Columna+=1
+                elif Codigo[Cont] == "\n":
+                    Cont+=1
+                    Columna=0
+                    Fila+=1
+                else:
+                    Errores.append(Error(Codigo[Cont], "Simbolo_No_Perteneciente", Fila, Columna))
+                    TxtAreaConsola.insert(INSERT, "Error lexico: Simbolo no perteneciente | " + Codigo[Cont] + " | en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
+                    Cont+=1
+                    Columna+=1
+                    Estado = 0
+            elif Estado == 1:
+                if Codigo[Cont] == "!" and Cont+1 != len(Codigo):
+                    Estado = 2
+                    Cont+=1
+                    Columna+=1
+                else:
+                    Estado = 5
+            elif Estado == 2:
+                if Codigo[Cont] == "-" and Cont+1 != len(Codigo):
+                    Cont+=1
+                    Columna+=1
+                    Estado = 3
+                else:
+                    Estado = 5
+            elif Estado == 3:
+                if Codigo[Cont] == "-" and Cont+1 != len(Codigo):
+                    Cont+=1
+                    Columna+=1
+                    Estado = 4
+                else:
+                    if Cont+1 != len(Codigo):
+                        Estado = 5
+                    else:
+                        Errores.append(Error("<!--", "Sin_Finalizar", FilaI, ColumnaI))
+                        TxtAreaConsola.insert(INSERT, "Error lexico: Comentario sin finalizar | <!-- | en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
+            elif Estado == 4:
+                if Cont+1 == len(Codigo):
+                    Lexema = ""
+                    for i in range(Inicio, Cont):
+                        Lexema += Codigo[i]
+                    Errores.append(Error(Lexema, "Sin_Finalizar", Fila, Columna))
+                    TxtAreaConsola.insert(INSERT, "Error lexico: Comentario sin finalizar | " + Lexema + " | en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
+                    Estado=0
+                elif Codigo[Cont] == "-":
+                    Cont+=1
+                    Columna+=1
+                    Estado = 6
+                    if Cont == len(Codigo):
+                        Lexema = ""
+                        for i in range(Inicio, Cont):
+                            Lexema += Codigo[i]
+                        Errores.append(Error(Lexema, "Sin_Finalizar", Fila, Columna))
+                        TxtAreaConsola.insert(INSERT, "Error lexico: Comentario sin finalizar | " + Lexema + " | en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
+                        Estado=0
+                else:
+                    if Codigo[Cont] == "\n":
+                        Columna=0
+                        Fila+=1
+                    else:
+                        Columna+=1
+                    Cont+=1                 
+            elif Estado == 5:
+                Cont = Inicio
+                Columna = ColumnaI
+                Fila = FilaI
+                Tokens.append(Token("<", "Simbolo_Menor_Que", Fila, Columna))
+                TxtAreaConsola.insert(INSERT, "Simbolo | < | en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
+                Cont+=1
+                Columna+=1
+                Estado = 0
+            elif Estado == 6:
+                if Codigo[Cont] == "-" and Cont+1 != len(Codigo):
+                    Cont+=1
+                    Columna+=1
+                    Estado = 7
+                elif Cont+1 == len(Codigo):
+                    Lexema = ""
+                    for i in range(Inicio, Cont):
+                        Lexema += Codigo[i]
+                    Errores.append(Error(Lexema, "Sin_Finalizar", Fila, Columna))
+                    TxtAreaConsola.insert(INSERT, "Error lexico: Comentario sin finalizar | " + Lexema + " | en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
+                    Estado=0
+                else:
+                    Estado = 4
+            elif Estado == 7:
+                if Codigo[Cont] == "!" and Cont+1 != len(Codigo):
+                    Cont+=1
+                    Columna+=1
+                    Estado = 8
+                elif Cont+1 == len(Codigo):
+                    Lexema = ""
+                    for i in range(Inicio, Cont):
+                        Lexema += Codigo[i]
+                    Errores.append(Error(Lexema, "Sin_Finalizar", Fila, Columna))
+                    TxtAreaConsola.insert(INSERT, "Error lexico: Comentario sin finalizar | " + Lexema + " | en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
+                    Estado=0
+                else:
+                    Estado = 4
+            elif Estado == 8:
+                if Codigo[Cont] == ">" and Cont+1 != len(Codigo):
+                    Cont+=1
+                    Columna+=1
+                    Estado = 0
+                    Lexema = ""
+                    for i in range(Inicio, Cont):
+                        Lexema += Codigo[i]
+                    Tokens.append(Token(Lexema, "Comentario", FilaI, ColumnaI))
+                    TxtAreaConsola.insert(INSERT, "Comentario | " + Lexema + " | en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
+                elif Cont+1 == len(Codigo):
+                    Lexema = ""
+                    for i in range(Inicio, Cont):
+                        Lexema += Codigo[i]
+                    Errores.append(Error(Lexema, "Sin_Finalizar", FilaI, ColumnaI))
+                    TxtAreaConsola.insert(INSERT, "Error lexico: Comentario sin finalizar | " + Lexema + " | en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
+                    Estado=0
+                else:
+                    Estado = 4
+            elif Estado == 9:
+                if not IsLetra(Codigo[Cont]) and not IsDigito(Codigo[Cont]):
+                    Lexema = ""
+                    for i in range(Inicio, Cont):
+                        Lexema += Codigo[i]
+                    Etiqueta = False
+                    for i in range(len(Etiquetas)):
+                        if Lexema.lower() == Etiquetas[i].lower():
+                            Etiqueta = True
+                            Tokens.append(Token(Lexema, "Etiqueta_"+Etiquetas[i], FilaI, ColumnaI))
+                            TxtAreaConsola.insert(INSERT, "Etiqueta | " + Etiquetas[i] + " | en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
+                    if not Etiqueta:
+                        Atributo = False
+                        for i in range(len(Atributos)):
+                            if Lexema.lower() == Atributos[i].lower():
+                                Atributo = True
+                                Tokens.append(Token(Lexema, "Atributo_"+Atributos[i], FilaI, ColumnaI))
+                                TxtAreaConsola.insert(INSERT, "Atributo | " + Atributos[i] + " | en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")                        
+                        if not Atributo:
+                            Errores.append(Error(Lexema, "Palabra_Inexistente", FilaI, ColumnaI))
+                            TxtAreaConsola.insert(INSERT, "Error lexico: Etiqueta o atributo no soportado | " + Lexema + " | en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
+                    Estado = 0
+                else:
+                    Cont+=1
+                    Columna+=1
+            elif Estado == 10:
+                if Codigo[Cont] == "<":
+                    Lexema = ""
+                    for i in range(Inicio, Cont):
+                        Lexema += Codigo[i]
+                    Tokens.append(Token(Lexema, "Texto", FilaI, ColumnaI))
+                    TxtAreaConsola.insert(INSERT, "Texto | " + Lexema + " | en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
+                    Estado = 0
+                else:
+                    Cont+=1
+                    if Cont == len(Codigo):
+                        Lexema = ""
+                        for i in range(Inicio, Cont):
+                            Lexema += Codigo[i]
+                        Tokens.append(Token(Lexema, "Texto", FilaI, ColumnaI))
+                        TxtAreaConsola.insert(INSERT, "Texto | " + Lexema + " | en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
+                        Estado = 0
+                    elif Codigo[Cont] == "\n":
+                        Columna = 0
+                        Fila+=1
+                    else:
+                        Columna+=1
+            elif Estado == 11:
+                if Codigo[Cont] == "\"":
+                    Cont+=1
+                    Columna+=1
+                    Lexema = ""
+                    for i in range(Inicio, Cont):
+                        Lexema += Codigo[i]
+                    Tokens.append(Token(Lexema, "Cadena", FilaI, ColumnaI))
+                    TxtAreaConsola.insert(INSERT, "Cadena | " + Lexema + " | en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
+                    Estado = 0
+                else:
+                    Cont+=1
+                    if Cont == len(Codigo):
+                        Lexema = ""
+                        for i in range(Inicio, Cont):
+                            Lexema += Codigo[i]
+                        Errores.append(Error(Lexema, "Cadena_Sin_Cerrar", FilaI, ColumnaI))
+                        TxtAreaConsola.insert(INSERT, "Error lexico: No se cerro la cadena | " + Lexema + " | en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
+                        Estado = 0
+                    elif Codigo[Cont] == "\n":
+                        Columna = 0
+                        Fila+=1
+                    else:
+                        Columna+=1
+
     def CSS():
         TxtAreaConsola.insert(INSERT, "CSS\n")
         Codigo = list(TxtAreaCodigo.get("1.0",'end-1c') + " ")
@@ -457,7 +412,6 @@ try:
                     for i in range(Inicio, Cont):
                         Lexema += Codigo[i]
                     Tokens.append(Token(Lexema, "Comentario", Fila, Columna))
-                    TxtAreaConsola.insert(INSERT, "Comentario |" + Lexema + "| en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
                     Estado = 0
                 else:
                     Estado = 2
@@ -465,7 +419,6 @@ try:
                 for i in range(len(Simbolos)):
                     if Codigo[Cont] == Simbolos[i]:
                         Tokens.append(Token(Simbolos[i], "Simbolo_" + NSimbolos[i], Fila, Columna))
-                        TxtAreaConsola.insert(INSERT, NSimbolos[i] + " |" + Simbolos[i] + "| en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
                         Cont+=1
                         Columna+=1
                         Estado=0
@@ -479,17 +432,14 @@ try:
                         if Lexema == Reglas[i]:
                             Regla = True
                             Tokens.append(Token(Lexema, "Regla_" + Reglas[i], FilaI, ColumnaI))
-                            TxtAreaConsola.insert(INSERT, Reglas[i] + " |" + Lexema + "| en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
                     if not Regla:
                         Valor = False
                         for i in range(len(Valores)):
                             if Lexema == Valores[i]:
                                 Valor = True
                                 Tokens.append(Token(Lexema, "Valores_" + Reglas[i], FilaI, ColumnaI))
-                                TxtAreaConsola.insert(INSERT, "Reservada de valor |" + Lexema + "| en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
                         if not Valor:
                             Tokens.append(Token(Lexema, "ID", FilaI, ColumnaI))
-                            TxtAreaConsola.insert(INSERT, "ID |" + Lexema + "| en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
                     Estado = 0
                 else:
                     Cont+=1
@@ -500,7 +450,6 @@ try:
                     for i in range(Inicio, Cont):
                         Lexema += Codigo[i]
                     Tokens.append(Token(Lexema, "Numero", FilaI, ColumnaI))
-                    TxtAreaConsola.insert(INSERT, "Numero |" + Lexema + "| en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
                     Estado = 0
                 elif Codigo[Cont] == ".":
                     Cont+=1
@@ -515,7 +464,6 @@ try:
                     for i in range(Inicio, Cont):
                         Lexema += Codigo[i]
                     Tokens.append(Token(Lexema, "Numero_Con_Decimal", FilaI, ColumnaI))
-                    TxtAreaConsola.insert(INSERT, "Numero Con Decimal |" + Lexema + "| en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
                     Estado = 0
                 else:
                     Cont+=1
@@ -529,7 +477,6 @@ try:
                         for i in range(Inicio, Cont):
                             Lexema += Codigo[i]
                         Tokens.append(Token(Lexema, "Cadena", FilaI, ColumnaI))
-                        TxtAreaConsola.insert(INSERT, "Cadena |" + Lexema + "| en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
                         Estado=0
                     elif Codigo[Cont] == "\n":
                         Cont+=1
@@ -559,6 +506,8 @@ try:
         FilaI = 0
         Tokens = list()
         Errores = list()
+        "Comentario Unilinea, Multilinea, Simbolos, ID, Reservadas, Numero, Decimal"
+        Entrado = [False, False, False, False, False, False, False]
         while Cont < len(Codigo):
             if Estado == 0:
                 if Codigo[Cont] == "/":
@@ -719,7 +668,6 @@ try:
                 Errores.append(Error(Tokens[Num].Tipo, "Incorrecto", Tokens[Num-1].Fila, (Tokens[Num-1].Columna)+1))
                 TxtAreaConsola.insert(INSERT, "Error Sintactico: Viene | " + Tokens[Num].Tipo + " |, se esperaba | " + Tipo + " | en Fila: " + str(Tokens[Num].Fila) + " y columna: " + str(Tokens[Num].Columna) + "\n")
             Num+=1
-
 
         def S2():
             nonlocal Num
