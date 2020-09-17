@@ -542,7 +542,7 @@ try:
                     Errores.append(Error(Lexema, "Cadena_Sin_Fin", FilaI, ColumnaI))
                     TxtAreaConsola.insert(INSERT, "Error lexico: Cadena sin finalizar | " + Lexema + " | en Fila: " + str(FilaI) + " y columna: " + str(ColumnaI) + "\n")
                     Estado = 0
-                
+    
     def Javascript():
         TxtAreaConsola.insert(INSERT, "JS\n")
         Codigo = list(TxtAreaCodigo.get("1.0",'end-1c') + " ")
@@ -709,45 +709,191 @@ try:
         TxtAreaCodigo.insert(INSERT, NCodigo)
 
     def Sintactico():
+
+        Num=0
+
+        def Parea(Tipo="*"):
+            nonlocal Num
+            nonlocal Tokens
+            if Tipo != Tokens[Num].Tipo:
+                Errores.append(Error(Tokens[Num].Tipo, "Incorrecto", Tokens[Num-1].Fila, (Tokens[Num-1].Columna)+1))
+                TxtAreaConsola.insert(INSERT, "Error Sintactico: Viene | " + Tokens[Num].Tipo + " |, se esperaba | " + Tipo + " | en Fila: " + str(Tokens[Num].Fila) + " y columna: " + str(Tokens[Num].Columna) + "\n")
+            Num+=1
+
+
+        def S2():
+            nonlocal Num
+            nonlocal Tokens
+            if Tokens[Num].Tipo == "Simbolo_Abrir_Parentesis":
+                Parea("Simbolo_Abrir_Parentesis")
+                if Num<len(Tokens):
+                    if Tokens[Num].Tipo != "Simbolo_Cerrar_Parentesis":
+                        S0()
+                        if Num<len(Tokens):
+                            Parea("Simbolo_Cerrar_Parentesis")
+                        else:
+                            Errores.append(Error(" ", "Sin_Fin", Tokens[Num-1].Fila, (Tokens[Num-1].Columna)+1))
+                            TxtAreaConsola.insert(INSERT, "Error Sintactico: El parentesis nunca es cerrado\n")
+                    else:
+                        Errores.append(Error("", "Vacio", Tokens[Num].Fila, Tokens[Num].Columna))
+                        TxtAreaConsola.insert(INSERT, "Error Sintactico: Parentesis Vacio\n")
+                        Parea("Simbolo_Cerrar_Parentesis")
+                else:
+                    Errores.append(Error(" ", "Sin_Fin", Tokens[Num-1].Fila, (Tokens[Num-1].Columna)+1))
+                    TxtAreaConsola.insert(INSERT, "Error Sintactico: El parentesis nunca es cerrado\n")
+            elif Tokens[Num].Tipo == "ID":
+                Parea("ID")
+            else:
+                Parea("Numero")
+
+        def S1P():
+            nonlocal Num
+            nonlocal Tokens
+            if Tokens[Num].Tipo == "Simbolo_Multilplicador":
+                Parea("Simbolo_Multilplicador")
+                if Num<len(Tokens):
+                    S2()
+                    if Num<len(Tokens):
+                        S1P()
+                else: 
+                    Errores.append(Error(" ", "Sin_Continuar", Tokens[Num-1].Fila, (Tokens[Num-1].Columna)+1))
+                    TxtAreaConsola.insert(INSERT, "Error Sintactico: No hay valor despues del signo\n")
+            elif Tokens[Num].Tipo == "Simbolo_Divisor":
+                Parea("Simbolo_Divisor")
+                if Num<len(Tokens):
+                    S2()
+                    if Num<len(Tokens):
+                        S1P()
+                else: 
+                    Errores.append(Error(" ", "Sin_Continuar", Tokens[Num-1].Fila, (Tokens[Num-1].Columna)+1))
+                    TxtAreaConsola.insert(INSERT, "Error Sintactico: No hay valor despues del signo\n")
+
+        def S1():
+            nonlocal Num
+            nonlocal Tokens
+            if Num<len(Tokens):
+                S2()
+                if Num<len(Tokens):
+                    S1P()
+
+        def S0P():
+            nonlocal Num
+            nonlocal Tokens
+            if Tokens[Num].Tipo == "Simbolo_Mas":
+                Parea("Simbolo_Mas")
+                if Num<len(Tokens):
+                    S1()
+                    if Num<len(Tokens):
+                        S0P()
+                else:
+                    Errores.append(Error(" ", "Sin_Continuar", Tokens[Num-1].Fila, (Tokens[Num-1].Columna)+1))
+                    TxtAreaConsola.insert(INSERT, "Error Sintactico: No hay valor despues del signo\n")
+            elif Tokens[Num].Tipo == "Simbolo_Menos":
+                Parea("Simbolo_Menos")
+                if Num<len(Tokens):
+                    S1()
+                    if Num<len(Tokens):
+                        S0P()
+                else:
+                    Errores.append(Error(" ", "Sin_Continuar", Tokens[Num-1].Fila, (Tokens[Num-1].Columna)+1))
+                    TxtAreaConsola.insert(INSERT, "Error Sintactico: No hay valor despues del signo\n")
+
+        def S0():
+            nonlocal Num
+            nonlocal Tokens
+            if Num<len(Tokens):
+                S1()
+                print(Num)
+                if Num<len(Tokens):
+                    S0P()
+
         TxtAreaConsola.insert(INSERT, "Sintactico\n")
         Codigo = list(TxtAreaCodigo.get("1.0",'end-1c') + " ")
-        Simbolos = ["+", "-", "*", "/", "^"]
-        NSimbolos = ["Mas", "Menos", "Multilplicador", "Divisor", "Potencia"]
+        Simbolos = ["+", "-", "*", "/", "(", ")"]
+        NSimbolos = ["Mas", "Menos", "Multilplicador", "Divisor", "Abrir_Parentesis", "Cerrar_Parentesis"]
         Cont = 0
         Estado = 0
         Inicio = 0
         Columna = 0
+        ColumnaI = 0
         Fila = 0
         Tokens = list()
         Errores = list()
         while Cont < len(Codigo):
+            Tokens = list()
             ELexicos = 0
-            while Codigo[Cont] != "\n":
+            while Cont < len(Codigo) and Codigo[Cont] != "\n":
                 if Estado == 0:
                     if Codigo[Cont] == " " or Codigo[Cont] == "\t":
                         Cont+=1
                         Columna +=1
                     elif IsDigito(Codigo[Cont]):
+                        Inicio = Cont
+                        ColumnaI = Columna
                         Estado = 1
                     elif IsLetra(Codigo[Cont]):
-                        Estado = 2
+                        Inicio = Cont
+                        ColumnaI = Columna
+                        Estado = 3
                     else:
                         Signo = False
                         for i in range(len(Simbolos)):
                             if Codigo[Cont] == Simbolos[i]:
                                 Signo = True
                                 Tokens.append(Token(Simbolos[i], "Simbolo_" + NSimbolos[i], Fila, Columna))
-                                NCodigo += Codigo[Cont]
                                 Cont+=1
                                 Columna+=1
                         if not Signo:
+                            ELexicos += 1
                             Errores.append(Error(Codigo[Cont], "No_Pertenece_Al_Lenguaje", Fila, Columna))
                             TxtAreaConsola.insert(INSERT, "Error lexico: El caracter no pertenece al lenguaje | " + Codigo[Cont] + " | en Fila: " + str(Fila) + " y columna: " + str(Columna) + "\n")
                             Cont+=1
                             Columna+=1
+                elif Estado == 1:
+                    if not IsDigito(Codigo[Cont]) and Codigo[Cont] != ".":
+                        Lexema = ""
+                        for i in range(Inicio, Cont):
+                            Lexema += Codigo[i]
+                        Tokens.append(Token(Lexema, "Numero", Fila, ColumnaI))
+                        Estado = 0
+                    elif Codigo[Cont] == ".":
+                        Cont+=1
+                        Columna+=1
+                        Estado = 2
+                    else:
+                        Cont+=1
+                        Columna+=1
+                elif Estado == 2:
+                    if not IsDigito(Codigo[Cont]):
+                        Lexema = ""
+                        for i in range(Inicio, Cont):
+                            Lexema += Codigo[i]
+                        Tokens.append(Token(Lexema, "Numero", Fila, ColumnaI))
+                        Estado = 0
+                    else:
+                        Cont+=1
+                        Columna+=1
+                elif Estado == 3:
+                    if not IsLetra(Codigo[Cont]) and not IsDigito(Codigo[Cont]):
+                        Lexema = ""
+                        for i in range(Inicio, Cont):
+                            Lexema += Codigo[i]
+                        Tokens.append(Token(Lexema, "ID", Fila, ColumnaI))
+                        Estado = 0
+                    else:
+                        Cont+=1
+                        Columna+=1
+            if ELexicos != 0:
+                messagebox.showwarning('Errores Lexicos', 'Se han encontrado Errores Lexicos en la operación')
+            Num=0
+            S0()
+            if Num == len(Tokens):
+                print("SI")
+            else:
+                print("No")
             Columna=0
             Fila += 1 
-            Cont+=1
+            Cont+=1    
     
     def Analizar():
         Tokens = list()
